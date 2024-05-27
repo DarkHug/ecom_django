@@ -59,7 +59,10 @@
                                     <a class="btn btn-outline-dark mt-auto" href="{% url 'home' %}">Back
                                         to Home</a>
                                     <button type="button" data-index="{{ product.id }}"
-                                            class="btn btn-secondary update-cart">Update
+                                            class="btn btn-success update-cart">Update
+                                    </button>
+                                    <button type="button" data-index="{{ product.id }}"
+                                            class="btn btn-danger delete-product">Remove
                                     </button>
                                 </center>
                             </div>
@@ -67,6 +70,7 @@
                     </div>
                 </div>
             {% endfor %}
+            <h3>Total: ${{ totals }}</h3>
         {% else %}
             <h1>There's Nothing in your cart...</h1>
         {% endif %}
@@ -76,7 +80,7 @@
 
 
     <script>
-        //Check if button pressed
+        // Update Cart
         $(document).on('click', '.update-cart', function (e) {
             e.preventDefault();
             // Grab the product ID
@@ -93,8 +97,34 @@
                 },
                 success: function (json) {
                     console.log(json);
+                    location.reload()
                     // Обновляем отображаемое количество товара без перезагрузки страницы
                     $('#select' + productid + ' option:selected').val(json.qty);
+                },
+                error: function (xhr, errmsg, err) {
+                    console.log(xhr.status + ": " + xhr.responseText);
+                }
+            });
+        });
+
+        // Delete Cart
+        $(document).on('click', '.delete-product', function (e) {
+            e.preventDefault();
+            // Получаем идентификатор продукта из атрибута data-index кнопки
+            var productid = $(this).data('index');
+
+            $.ajax({
+                type: 'POST',
+                url: '{% url "cart_delete" %}',
+                data: {
+                    product_id: productid,
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    action: 'post'
+                },
+                success: function (json) {
+                    console.log(json);
+                    // Обновляем отображаемое количество товара без перезагрузки страницы
+                    location.reload();
                 },
                 error: function (xhr, errmsg, err) {
                     console.log(xhr.status + ": " + xhr.responseText);
