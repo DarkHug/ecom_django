@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from .forms import SignUpForm, UpdateUserForm
+from .forms import SignUpForm, UpdateUserForm, ChangePasswordForm
 from django import forms
 from django.views.generic import DetailView
 
@@ -60,10 +60,35 @@ def update_user(request):
             login(request, current_user)
             messages.success(request, ' User Has Updated')
             return redirect('home')
-        return render(request, 'update_user.html', {'user_form':user_form})
+        return render(request, 'update_user.html', {'user_form': user_form})
 
     else:
-        messages.success(request,'You Must Be Logged In to Access that page')
+        messages.success(request, 'You Must Be Logged In to Access that page')
+        return redirect('home')
+
+
+def update_password(request):
+    if request.user.is_authenticated:
+        current_user = request.user
+
+        # Check If They Filled Form
+        if request.method == 'POST':
+            form = ChangePasswordForm(current_user, request.POST)
+            # Is valid
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Your Password Has Updated')
+                login(request, current_user)
+                return redirect('update_user')
+            else:
+                for error in list(form.errors.values()):
+                    messages.error(request, error)
+                return redirect('update_password')
+        else:
+            form = ChangePasswordForm(current_user)
+            return render(request, 'update_password.html', {'form': form})
+    else:
+        messages.success(request, "You Must Be Logged To Account")
         return redirect('home')
 
 
